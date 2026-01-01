@@ -3,6 +3,7 @@
 
 
 #include <stdint.h>
+#include <stdbool.h>
 
 
 #ifdef __cplusplus
@@ -22,6 +23,8 @@ enum wspp_error {
     WSPP_INVALID_STATE = 1,
     WSPP_UNKNOWN = -1,
 };
+
+typedef enum wspp_error wspp_error;
 
 wspp_ws* wspp_new(const char* uri);
 void wspp_delete(wspp_ws* ws);

@@ -1,6 +1,9 @@
 #ifndef _CLIENTWEBSOCKET_HPP
 #define _CLIENTWEBSOCKET_HPP
 
+#ifndef _WEBSOCKETPP_CPP11_THREAD_
+    #define _WEBSOCKETPP_CPP11_THREAD_
+#endif
 
 #include <functional>
 #include <string>

@@ -1,4 +1,4 @@
 /build/
 /venv/
-/deps/
-
+/.venv/
+*.code-workspace
