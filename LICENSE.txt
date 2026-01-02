@@ -21,6 +21,4 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 Binary distributions may contain parts of OpenSSL and other software.
-For OpenSSL see https://www.openssl.org/source/apache-license-2.0.txt
-See subprojects on https://github.com/black-sliver/c-wspp/
-for more details and individual licenses.
+See LICENSE.third-party.txt
