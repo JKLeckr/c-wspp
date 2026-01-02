@@ -26,20 +26,37 @@ target_compile_definitions(asio
   INTERFACE
     ASIO_STANDALONE
 )
-target_link_libraries(asio INTERFACE Threads)
+target_link_libraries(asio
+  INTERFACE
+    Threads::Threads
+    OpenSSL::SSL
+)
 
-add_subdirectory(lib/websocketpp)
-add_library(Websockets INTERFACE)
-target_include_directories(Websockets INTERFACE lib/websocketpp)
-target_link_libraries(Websockets INTERFACE Threads)
+add_library(websocketpp INTERFACE)
+target_include_directories(websocketpp INTERFACE lib/websocketpp)
+target_compile_definitions(websocketpp
+  INTERFACE
+    _WEBSOCKETPP_CPP11_THREAD_
+)
+target_link_libraries(websocketpp
+  INTERFACE
+    Threads::Threads
+    OpenSSL::SSL
+)
 
-add_library(c-wspp src/c-wspp.cpp)
+add_library(c-wspp SHARED src/c-wspp.cpp)
 
-target_link_libraries(c-wspp PRIVATE asio)
-target_link_libraries(c-wspp PRIVATE Websockets)
+set_target_properties(c-wspp
+  PROPERTIES
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN YES
+    PREFIX ""
+    IMPORT_PREFIX ""
+)
 
 target_sources(c-wspp
   PRIVATE
+    src/ClientWebSocket.hpp
     src/c-wspp.cpp
 
   PUBLIC
@@ -50,6 +67,24 @@ target_sources(c-wspp
       include/c-wspp.h
 )
 
+target_link_libraries(c-wspp
+  PRIVATE
+    Threads::Threads
+    OpenSSL::SSL
+    asio
+    websocketpp
+)
+
 if (WIN32)
-  target_compile_definitions(c-wspp PRIVATE WIN32_LEAN_AND_MEAN)
+  target_compile_definitions(c-wspp
+    PRIVATE
+      WIN32_LEAN_AND_MEAN
+      C_WSPP_BUILD
+  )
+  
+  target_link_libraries(c-wspp
+    PRIVATE
+      ws2_32
+      crypt32
+  )
 endif()

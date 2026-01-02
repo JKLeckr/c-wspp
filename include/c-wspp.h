@@ -6,6 +6,17 @@
 #include <stdbool.h>
 
 
+#if defined(_WIN32)
+  #if defined(C_WSPP_BUILD)
+    #define C_WSPP_API __declspec(dllexport)
+  #else
+    #define C_WSPP_API __declspec(dllimport)
+  #endif
+#else
+  #define C_WSPP_API __attribute__((visibility("default")))
+#endif
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
