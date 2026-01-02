@@ -88,3 +88,16 @@ if (WIN32)
       crypt32
   )
 endif()
+
+add_executable(c-wspp-test EXCLUDE_FROM_ALL test/test.c)
+target_link_libraries(c-wspp-test PRIVATE c-wspp)
+enable_testing()
+
+add_test(
+  NAME c-wspp-test
+  COMMAND $<TARGET_FILE:c-wspp-test>
+)
+add_custom_target(check
+  COMMAND ${CMAKE_CTEST_COMMAND}
+  DEPENDS c-wspp-test
+)
