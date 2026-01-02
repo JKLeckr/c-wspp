@@ -1,0 +1,97 @@
+name:  Check
+
+on:
+  push:
+    paths:
+      - "**.c"
+      - "**.cpp"
+      - "**.h"
+      - "**.hpp"
+      - "CMakeLists.txt"
+      - "lib/asio"
+      - "lib/websocketpp"
+      - 'test/test.c'
+      - '.github/workflows/check.yml'
+  pull_request:
+    paths:
+      - "**.c"
+      - "**.cpp"
+      - "**.h"
+      - "**.hpp"
+      - "CMakeLists.txt"
+      - "lib/asio"
+      - "lib/websocketpp"
+      - 'test/test.c'
+      - '.github/workflows/check.yml'
+
+jobs:
+
+  test-ubuntu:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+
+    name: test-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies (apt)
+        run: |
+          sudo apt-get update -y
+          sudo apt -y install build-essential libssl-dev cmake
+
+      - name: Build Debug
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.22
+          make
+
+      - name: Run Test
+        run: |
+          cd build
+          make check
+
+
+  test-windows:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+    
+    strategy:
+      matrix:
+        include:
+          - { sys: mingw32, env: i686 }
+          - { sys: ucrt64,  env: ucrt-x86_64 }
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.sys}}
+          update: true
+          install: >-
+            mingw-w64-${{matrix.env}}-gcc
+            mingw-w64-${{matrix.env}}-cmake
+            mingw-w64-${{matrix.env}}-openssl
+
+      - name: Build Debug
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make
+
+      - name: Run Test
+        run: |
+          cd build
+          make check
