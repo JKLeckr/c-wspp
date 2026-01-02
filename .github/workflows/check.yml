@@ -89,9 +89,9 @@ jobs:
           mkdir build
           cd build
           cmake ..
-          make
+          ninja
 
       - name: Run Test
         run: |
           cd build
-          make check
+          ninja check
