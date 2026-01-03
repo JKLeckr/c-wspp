@@ -41,7 +41,7 @@ jobs:
 
       - name: Install dependencies (apt)
         run: |
-          sudo apt-get update -y
+          sudo apt update -y
           sudo apt -y install build-essential libssl-dev cmake
 
       - name: Build Debug

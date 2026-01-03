@@ -1,0 +1,194 @@
+name: Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - '!*norel*'
+
+jobs:
+  build-win:
+    strategy:
+      matrix:
+        sys:
+          - { msys: ucrt64, env: ucrt-x86_64, arch: 64 }
+          - { msys: mingw32, env: i686, arch: 86 }
+    
+    name: Build Windows x${{matrix.sys.arch}}
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.sys.msys}}
+          update: true
+          install: >-
+            zip
+            mingw-w64-${{ matrix.sys.env }}-gcc
+            mingw-w64-${{ matrix.sys.env }}-cmake
+            mingw-w64-${{ matrix.sys.env }}-openssl
+
+      - name: Set Env
+        run: |
+          export RELEASE_VERSION="${GITHUB_REF#refs/*/}"
+          export DIR_NAME="c-wspp_${RELEASE_VERSION}_win-x${{ matrix.sys.arch }}"
+
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
+          echo "DIR_NAME=$DIR_NAME" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: Build c-wspp
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.22
+          ninja
+      
+      - name: Package
+        run: |
+          mkdir -p ${{ env.DIR_NAME }}
+          cp build/c-wspp.dll ${{ env.DIR_NAME }}/
+          cp LICENSE*.txt ${{ env.DIR_NAME }}/
+
+      - name: Build ZIP package
+        run: |
+          zip -r ${{ env.DIR_NAME }}.zip ${{ env.DIR_NAME }}/
+
+      - name: Calculate SHA256 checksum
+        run: |
+          sha256sum ${{ env.DIR_NAME }}.zip > ${{ env.DIR_NAME }}.zip.sha256
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          prerelease: false
+          name: c-wspp ${{ env.RELEASE_VERSION }}
+          token: ${{ secrets.CWSPP_TOKEN }}
+          files: |
+            ${{ env.DIR_NAME }}.zip
+            ${{ env.DIR_NAME }}.zip.sha256
+
+  build-mac:
+    name: Build macOS
+    runs-on: macos-15
+
+    steps:
+      - name: Set Env
+        run: |
+          export RELEASE_VERSION="${GITHUB_REF#refs/*/}"
+          export DIR_NAME="c-wspp_${RELEASE_VERSION}_macos-universal"
+
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
+          echo "DIR_NAME=$DIR_NAME" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: Setup OpenSSL
+        run: |
+          export ASSET_ID=$(curl -s -H "Authorization: token ${{ secrets.PRIVATE_DEP_TOKEN }}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/JKLeckr/openssl-macos-universal-builds/releases/latest" | jq -r '.assets[] | select(.name | endswith(".zip")) | .id')
+          curl -L -H "Authorization: token ${{ secrets.PRIVATE_DEP_TOKEN }}" -H "Accept: application/octet-stream" "https://api.github.com/repos/JKLeckr/openssl-macos-universal-builds/releases/assets/${ASSET_ID}" -o openssl.zip
+          unzip openssl.zip
+
+      - uses: lukka/get-cmake@latest
+      
+      - name: Build c-wspp
+        run: |
+          export OPENSSL_ROOT_DIR=$(pwd)/openssl-macos-universal
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.22 -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+          make
+      
+      - name: Package
+        run: |
+          mkdir -p ${{ env.DIR_NAME }}
+          cp build/c-wspp.dylib ${{ env.DIR_NAME }}/
+          cp LICENSE*.txt ${{ env.DIR_NAME }}/
+
+      - name: Build ZIP package
+        run: |
+          zip -r ${{ env.DIR_NAME }}.zip ${{ env.DIR_NAME }}/
+
+      - name: Calculate SHA256 checksum
+        run: |
+          sha256sum ${{ env.DIR_NAME }}.zip > ${{ env.DIR_NAME }}.zip.sha256
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          prerelease: false
+          name: c-wspp ${{ env.RELEASE_VERSION }}
+          token: ${{ secrets.CWSPP_TOKEN }}
+          files: |
+            ${{ env.DIR_NAME }}.zip
+            ${{ env.DIR_NAME }}.zip.sha256
+  
+  build-linux:
+    strategy:
+      matrix:
+        os: [ ubuntu-22.04, ubuntu-24.04 ]
+        arch: [ amd64 ]
+
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Set Env
+        run: |
+          export RELEASE_VERSION="${GITHUB_REF#refs/*/}"
+          export DIR_NAME="c-wspp_${RELEASE_VERSION}_${{ matrix.os }}-${{ matrix.arch }}"
+
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
+          echo "DIR_NAME=$DIR_NAME" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: Setup Build Environment
+        run: |
+          sudo apt update -y
+          sudo apt -y install build-essential libssl-dev cmake
+
+      - name: Build c-wspp
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.22
+          make
+      
+      - name: Package
+        run: |
+          mkdir -p ${{ env.DIR_NAME }}
+          cp build/c-wspp.so ${{ env.DIR_NAME }}/
+          cp LICENSE*.txt ${{ env.DIR_NAME }}/
+
+      - name: Build ZIP package
+        run: |
+          zip -r ${{ env.DIR_NAME }}.zip ${{ env.DIR_NAME }}/
+
+      - name: Calculate SHA256 checksum
+        run: |
+          sha256sum ${{ env.DIR_NAME }}.zip > ${{ env.DIR_NAME }}.zip.sha256
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          prerelease: false
+          name: c-wspp ${{ env.RELEASE_VERSION }}
+          token: ${{ secrets.CWSPP_TOKEN }}
+          files: |
+            ${{ env.DIR_NAME }}.zip
+            ${{ env.DIR_NAME }}.zip.sha256
