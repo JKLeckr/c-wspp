@@ -17,6 +17,7 @@ endif()
 
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
+find_package(ZLIB REQUIRED)
 
 add_library(asio INTERFACE)
 target_include_directories(asio
@@ -42,6 +43,7 @@ target_link_libraries(websocketpp
   INTERFACE
     Threads::Threads
     OpenSSL::SSL
+    ZLIB::ZLIB
 )
 
 add_library(c-wspp SHARED src/c-wspp.cpp)
@@ -54,6 +56,7 @@ set_target_properties(c-wspp
 
 target_sources(c-wspp
   PRIVATE
+    src/config.hpp
     src/ClientWebSocket.hpp
     src/c-wspp.cpp
 
@@ -69,6 +72,7 @@ target_link_libraries(c-wspp
   PRIVATE
     Threads::Threads
     OpenSSL::SSL
+    ZLIB::ZLIB
     asio
     websocketpp
 )

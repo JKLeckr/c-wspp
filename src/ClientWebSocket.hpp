@@ -1,13 +1,13 @@
-#ifndef _CLIENTWEBSOCKET_HPP
-#define _CLIENTWEBSOCKET_HPP
+#ifndef _CWSPP_CLIENTWEBSOCKET_HPP
+#define _CWSPP_CLIENTWEBSOCKET_HPP
 
 
 #include <functional>
 #include <string>
-#include <stdint.h>
-#include <stdio.h>
+#include <cstdint>
+#include <cstdio>
 #include <asio.hpp>
-#include <websocketpp/config/asio_client.hpp>
+#include "config.hpp"
 #include <websocketpp/client.hpp>
 #ifdef _WIN32
 #include <wincrypt.h>
@@ -53,15 +53,23 @@ namespace detail {
         va_end (args);
     }
 
-    template<class T>
-    void init_ssl(websocketpp::client<T>&, const std::string& cert_store, bool validate_cert)
-    {
-    }
+    template <typename Config>
+    struct is_tls_client : std::is_base_of<websocketpp::config::asio_tls_client, Config> {};
 
-    template<>
-    void init_ssl<websocketpp::config::asio_tls_client>(
-        websocketpp::client<websocketpp::config::asio_tls_client>& client,
-        const std::string& cert_store, bool validate_cert)
+    template<class Config>
+    void _init_ssl_impl(
+        websocketpp::client<Config>&,
+        const std::string& cert_store,
+        bool validate_cert,
+        std::false_type)
+    {}
+
+    template<class Config>
+    void _init_ssl_impl(
+        websocketpp::client<Config>& client,
+        const std::string& cert_store,
+        bool validate_cert,
+        std::true_type)
     {
         typedef asio::ssl::context SSLContext;
         typedef std::shared_ptr<SSLContext> SSLContextPtr;
@@ -117,6 +125,19 @@ namespace detail {
             }
             return ctx;
         });
+    }
+
+    template<class Config>
+    void init_ssl(websocketpp::client<Config>& client,
+        const std::string& cert_store,
+        bool validate_cert)
+    {
+        _init_ssl_impl(
+            client,
+            cert_store,
+            validate_cert,
+            is_tls_client<Config>{}
+        );
     }
 } // namespace WSPP::detail
 
@@ -187,7 +208,7 @@ public:
         _client.set_pong_timeout(10000);
         _client.init_asio(&_service);
 
-        detail::init_ssl(_client, "", true);
+        detail::init_ssl<CONFIG>(_client, "", true);
 
         _client.set_open_handler([this] (websocketpp::connection_hdl hdl) {
             if (_open_handler)
@@ -282,8 +303,10 @@ public:
 };
 
 // implemented client websockets
-typedef ClientWebSocket<websocketpp::config::asio_tls_client> SecureClientWebSocket;
-typedef ClientWebSocket<websocketpp::config::asio_client> PlainClientWebSocket;
+typedef ClientWebSocket<asio_tls_client> SecureClientWebSocket;
+typedef ClientWebSocket<asio_client> PlainClientWebSocket;
+typedef ClientWebSocket<asio_tls_client_compress> CompressedSecureClientWebSocket;
+typedef ClientWebSocket<asio_client_compress> CompressedPlainClientWebSocket;
 
 } // namespace WSPP
 

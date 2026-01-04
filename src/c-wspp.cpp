@@ -1,6 +1,6 @@
 #include <string>
 #include <mutex>
-#include <stdint.h>
+#include <cstdint>
 #include <asio.hpp>
 #include <websocketpp/uri.hpp>
 #include "ClientWebSocket.hpp"
@@ -12,17 +12,33 @@ struct wspp_ws {
 };
 
 
-wspp_ws* wspp_new(const char* uri_string)
+wspp_ws* wspp_new_ext(const char* uri_string, bool use_compression)
 {
     wspp_ws* ws = new wspp_ws();
     websocketpp::uri uri(uri_string);
     if (uri.get_secure()) {
-        ws->impl = new WSPP::SecureClientWebSocket(uri_string);
+        if (use_compression) {
+            ws->impl = new WSPP::CompressedSecureClientWebSocket(uri_string);
+        }
+        else {
+            ws->impl = new WSPP::SecureClientWebSocket(uri_string);
+        }
     } else {
-        ws->impl = new WSPP::PlainClientWebSocket(uri_string);
+        if (use_compression) {
+            ws->impl = new WSPP::CompressedPlainClientWebSocket(uri_string);
+        }
+        else {
+            ws->impl = new WSPP::PlainClientWebSocket(uri_string);
+        }
     }
     return ws;
 }
+
+
+wspp_ws* wspp_new(const char* uri_string) {
+    return wspp_new_ext(uri_string, true);
+}
+
 
 void wspp_delete(wspp_ws* ws)
 {

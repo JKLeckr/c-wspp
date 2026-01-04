@@ -8,6 +8,7 @@ to get recent SSL/TLS into older Mono projects, but can also be used for other s
 ## API
 
 * `wspp_new(const char* uri) -> wspp_ws*` - create new websocket for URI (ws:// or wss://)
+* `wspp_new_ext(const char* uri, bool use_compression) -> wspp_ws*` - create new websocket while specifying whether to use compression.
 * `wspp_delete(wspp_ws*)` - close websocket and free memory
 * `wspp_poll(wspp_ws*) -> uint64_t` - poll network and dispatch events non-blocking, returns number of handled events
 * `wspp_run(wspp_ws*) -> uint64_t` - poll network and dispatch events blocking, returns number of handled events

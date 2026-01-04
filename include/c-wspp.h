@@ -38,6 +38,7 @@ enum wspp_error {
 typedef enum wspp_error wspp_error;
 
 wspp_ws* wspp_new(const char* uri);
+wspp_ws* wspp_new_ext(const char* uri, bool compressed);
 void wspp_delete(wspp_ws* ws);
 uint64_t wspp_poll(wspp_ws* ws);
 uint64_t wspp_run(wspp_ws* ws);
