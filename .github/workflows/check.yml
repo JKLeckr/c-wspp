@@ -30,8 +30,9 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04]
+        arch: [amd64]
 
-    name: test-${{ matrix.os }}
+    name: test-${{ matrix.os }} (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -95,3 +96,34 @@ jobs:
         run: |
           cd build
           ninja check
+
+
+  build-mac:
+    name: test-macos (universal)
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: Setup OpenSSL
+        run: |
+          export ASSET_ID=$(curl -s -H "Authorization: token ${{ secrets.PRIVATE_DEP_TOKEN }}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/JKLeckr/openssl-macos-universal-builds/releases/latest" | jq -r '.assets[] | select(.name | endswith(".zip")) | .id')
+          curl -L -H "Authorization: token ${{ secrets.PRIVATE_DEP_TOKEN }}" -H "Accept: application/octet-stream" "https://api.github.com/repos/JKLeckr/openssl-macos-universal-builds/releases/assets/${ASSET_ID}" -o openssl.zip
+          unzip openssl.zip
+
+      - uses: lukka/get-cmake@latest
+      
+      - name: Build c-wspp
+        run: |
+          export OPENSSL_ROOT_DIR=$(pwd)/openssl-macos-universal
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.22 -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+          make
+      
+      - name: Run Test
+        run: |
+          cd build
+          make check
