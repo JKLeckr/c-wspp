@@ -11,10 +11,10 @@ jobs:
     strategy:
       matrix:
         sys:
-          - { msys: ucrt64, env: ucrt-x86_64, arch: 64 }
-          - { msys: mingw32, env: i686, arch: 86 }
+          - { msys: ucrt64, env: ucrt-x86_64, arch: x64, win: win64 }
+          - { msys: mingw32, env: i686, arch: x86, win: win32 }
     
-    name: Build Windows x${{matrix.sys.arch}}
+    name: Build Windows ${{matrix.sys.arch}}
     runs-on: windows-latest
 
     defaults:
@@ -35,10 +35,12 @@ jobs:
       - name: Set Env
         run: |
           export RELEASE_VERSION="${GITHUB_REF#refs/*/}"
-          export DIR_NAME="c-wspp_${RELEASE_VERSION}_win-x${{ matrix.sys.arch }}"
+          export DIR_NAME="c-wspp_win-${{ matrix.sys.arch }}"
+          export ZIP_NAME="c-wspp_${RELEASE_VERSION}_win-${{ matrix.sys.arch }}"
 
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
           echo "DIR_NAME=$DIR_NAME" >> $GITHUB_ENV
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
       - uses: actions/checkout@v4
         with:
@@ -54,16 +56,16 @@ jobs:
       - name: Package
         run: |
           mkdir -p ${{ env.DIR_NAME }}
-          cp build/c-wspp.dll ${{ env.DIR_NAME }}/
+          cp build/c-wspp.dll ${{ env.DIR_NAME }}/c-wspp-${{ matrix.sys.win }}.dll
           cp LICENSE*.txt ${{ env.DIR_NAME }}/
 
       - name: Build ZIP package
         run: |
-          zip -r ${{ env.DIR_NAME }}.zip ${{ env.DIR_NAME }}/
+          zip -r ${{ env.ZIP_NAME }}.zip ${{ env.DIR_NAME }}/
 
       - name: Calculate SHA256 checksum
         run: |
-          sha256sum ${{ env.DIR_NAME }}.zip > ${{ env.DIR_NAME }}.zip.sha256
+          sha256sum ${{ env.ZIP_NAME }}.zip > ${{ env.ZIP_NAME }}.zip.sha256
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
@@ -73,8 +75,8 @@ jobs:
           name: c-wspp ${{ env.RELEASE_VERSION }}
           token: ${{ secrets.CWSPP_TOKEN }}
           files: |
-            ${{ env.DIR_NAME }}.zip
-            ${{ env.DIR_NAME }}.zip.sha256
+            ${{ env.ZIP_NAME }}.zip
+            ${{ env.ZIP_NAME }}.zip.sha256
 
   build-mac:
     name: Build macOS
@@ -84,10 +86,12 @@ jobs:
       - name: Set Env
         run: |
           export RELEASE_VERSION="${GITHUB_REF#refs/*/}"
-          export DIR_NAME="c-wspp_${RELEASE_VERSION}_macos-universal"
+          export DIR_NAME="c-wspp_macos-universal"
+          export ZIP_NAME="c-wspp_${RELEASE_VERSION}_macos-universal"
 
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
           echo "DIR_NAME=$DIR_NAME" >> $GITHUB_ENV
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
       - uses: actions/checkout@v4
         with:
@@ -112,16 +116,16 @@ jobs:
       - name: Package
         run: |
           mkdir -p ${{ env.DIR_NAME }}
-          cp build/c-wspp.dylib ${{ env.DIR_NAME }}/
+          cp build/c-wspp.dylib ${{ env.DIR_NAME }}/c-wspp-macos-universal.dylib
           cp LICENSE*.txt ${{ env.DIR_NAME }}/
 
       - name: Build ZIP package
         run: |
-          zip -r ${{ env.DIR_NAME }}.zip ${{ env.DIR_NAME }}/
+          zip -r ${{ env.ZIP_NAME }}.zip ${{ env.DIR_NAME }}/
 
       - name: Calculate SHA256 checksum
         run: |
-          sha256sum ${{ env.DIR_NAME }}.zip > ${{ env.DIR_NAME }}.zip.sha256
+          sha256sum ${{ env.ZIP_NAME }}.zip > ${{ env.ZIP_NAME }}.zip.sha256
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
@@ -131,8 +135,8 @@ jobs:
           name: c-wspp ${{ env.RELEASE_VERSION }}
           token: ${{ secrets.CWSPP_TOKEN }}
           files: |
-            ${{ env.DIR_NAME }}.zip
-            ${{ env.DIR_NAME }}.zip.sha256
+            ${{ env.ZIP_NAME }}.zip
+            ${{ env.ZIP_NAME }}.zip.sha256
   
   build-linux:
     strategy:
@@ -147,10 +151,12 @@ jobs:
       - name: Set Env
         run: |
           export RELEASE_VERSION="${GITHUB_REF#refs/*/}"
-          export DIR_NAME="c-wspp_${RELEASE_VERSION}_${{ matrix.os }}-${{ matrix.arch }}"
+          export DIR_NAME="c-wspp_${{ matrix.os }}-${{ matrix.arch }}"
+          export ZIP_NAME="c-wspp_${RELEASE_VERSION}_${{ matrix.os }}-${{ matrix.arch }}"
 
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
           echo "DIR_NAME=$DIR_NAME" >> $GITHUB_ENV
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
 
       - uses: actions/checkout@v4
         with:
@@ -171,16 +177,16 @@ jobs:
       - name: Package
         run: |
           mkdir -p ${{ env.DIR_NAME }}
-          cp build/c-wspp.so ${{ env.DIR_NAME }}/
+          cp build/c-wspp.so ${{ env.DIR_NAME }}/c-wspp-linux-${{ matrix.arch }}.so
           cp LICENSE*.txt ${{ env.DIR_NAME }}/
 
       - name: Build ZIP package
         run: |
-          zip -r ${{ env.DIR_NAME }}.zip ${{ env.DIR_NAME }}/
+          zip -r ${{ env.ZIP_NAME }}.zip ${{ env.DIR_NAME }}/
 
       - name: Calculate SHA256 checksum
         run: |
-          sha256sum ${{ env.DIR_NAME }}.zip > ${{ env.DIR_NAME }}.zip.sha256
+          sha256sum ${{ env.ZIP_NAME }}.zip > ${{ env.ZIP_NAME }}.zip.sha256
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
@@ -190,5 +196,5 @@ jobs:
           name: c-wspp ${{ env.RELEASE_VERSION }}
           token: ${{ secrets.CWSPP_TOKEN }}
           files: |
-            ${{ env.DIR_NAME }}.zip
-            ${{ env.DIR_NAME }}.zip.sha256
+            ${{ env.ZIP_NAME }}.zip
+            ${{ env.ZIP_NAME }}.zip.sha256
