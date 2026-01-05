@@ -14,7 +14,7 @@ jobs:
           - { msys: ucrt64, env: ucrt-x86_64, win: win64 }
           - { msys: mingw32, env: i686, win: win32 }
     
-    name: Build Windows ${{matrix.sys.arch}}
+    name: Build Windows ${{matrix.sys.msys}}
     runs-on: windows-latest
 
     defaults:

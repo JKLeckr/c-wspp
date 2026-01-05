@@ -15,6 +15,10 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   add_compile_options(-fcolor-diagnostics)
 endif()
 
+if(APPLE)
+  set(OPENSSL_USE_STATIC_LIBS TRUE)
+endif()
+
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
