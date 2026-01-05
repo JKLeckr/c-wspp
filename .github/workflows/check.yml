@@ -25,7 +25,6 @@ on:
       - '.github/workflows/check.yml'
 
 jobs:
-
   test-ubuntu:
     strategy:
       matrix:
