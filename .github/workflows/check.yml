@@ -68,7 +68,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - { sys: mingw32, env: i686 }
           - { sys: ucrt64,  env: ucrt-x86_64 }
 
     steps:
@@ -109,8 +108,8 @@ jobs:
       
       - name: Setup OpenSSL
         run: |
-          export ASSET_ID=$(curl -s -H "Authorization: token ${{ secrets.PRIVATE_DEP_TOKEN }}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/JKLeckr/openssl-macos-universal-builds/releases/latest" | jq -r '.assets[] | select(.name | endswith(".zip")) | .id')
-          curl -L -H "Authorization: token ${{ secrets.PRIVATE_DEP_TOKEN }}" -H "Accept: application/octet-stream" "https://api.github.com/repos/JKLeckr/openssl-macos-universal-builds/releases/assets/${ASSET_ID}" -o openssl.zip
+          export ASSET_ID=$(curl -s -H "Authorization: token ${{ secrets.PRIVATE_DEP_TOKEN }}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/JKLeckr/openssl-builds/releases/latest" | jq -r '.assets[] | select(.name | endswith(".zip")) | .id')
+          curl -L -H "Authorization: token ${{ secrets.PRIVATE_DEP_TOKEN }}" -H "Accept: application/octet-stream" "https://api.github.com/repos/JKLeckr/openssl-builds/releases/assets/${ASSET_ID}" -o openssl.zip
           unzip openssl.zip
 
       - uses: lukka/get-cmake@latest

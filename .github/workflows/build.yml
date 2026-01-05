@@ -25,8 +25,7 @@ jobs:
       matrix:
         sys:
           - { msys: ucrt64, env: ucrt-x86_64, win: win64 }
-          - { msys: mingw32, env: i686, win: win32 }
-    
+
     name: Build Windows ${{matrix.sys.msys}}
     runs-on: windows-latest
     needs: prep-release
@@ -59,14 +58,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      
+
       - name: Build c-wspp
         run: |
           mkdir build
           cd build
           cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.22
           ninja
-      
+
       - name: Package
         run: |
           mkdir -p ${{ env.DIR_NAME }}
@@ -87,7 +86,7 @@ jobs:
           files: |
             ${{ env.ZIP_NAME }}.zip
 
-  
+
   build-linux:
     strategy:
       matrix:
@@ -112,7 +111,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      
+
       - name: Setup Build Environment
         run: |
           sudo apt update -y
@@ -124,7 +123,7 @@ jobs:
           cd build
           cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.22
           make
-      
+
       - name: Package
         run: |
           mkdir -p ${{ env.DIR_NAME }}
@@ -165,15 +164,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      
+
       - name: Setup OpenSSL
         run: |
-          export ASSET_ID=$(curl -s -H "Authorization: token ${{ secrets.PRIVATE_DEP_TOKEN }}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/JKLeckr/openssl-macos-universal-builds/releases/latest" | jq -r '.assets[] | select(.name | endswith(".zip")) | .id')
-          curl -L -H "Authorization: token ${{ secrets.PRIVATE_DEP_TOKEN }}" -H "Accept: application/octet-stream" "https://api.github.com/repos/JKLeckr/openssl-macos-universal-builds/releases/assets/${ASSET_ID}" -o openssl.zip
+          zsh
+          export ASSET_ID=$(curl -s -H "Authorization: token ${{ secrets.PRIVATE_DEP_TOKEN }}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/JKLeckr/openssl-builds/releases/latest" | jq -r '.assets[] | select(.name | endswith("macos-universal.zip")) | .id')
+          curl -L -H "Authorization: token ${{ secrets.PRIVATE_DEP_TOKEN }}" -H "Accept: application/octet-stream" "https://api.github.com/repos/JKLeckr/openssl-builds/releases/assets/${ASSET_ID}" -o openssl.zip
           unzip openssl.zip
 
       - uses: lukka/get-cmake@latest
-      
+
       - name: Build c-wspp
         run: |
           export OPENSSL_ROOT_DIR=$(pwd)/openssl-macos-universal
@@ -181,7 +181,7 @@ jobs:
           cd build
           cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.22 -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
           make
-      
+
       - name: Package
         run: |
           mkdir -p ${{ env.DIR_NAME }}
