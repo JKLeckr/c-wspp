@@ -5,6 +5,8 @@ project(c-wspp)
 # TODO: Remove this eventually when no longer needed (dependencies no longer target a deprecated version of cmake)
 set_property(GLOBAL PROPERTY CMAKE_POLICY_VERSION_MINIMUM 3.22)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set_property(GLOBAL PROPERTY CMAKE_SKIP_INSTALL_RULES ON)
 set_property(GLOBAL PROPERTY BUILD_RPATH_USE_ORIGIN ON)
 set_property(GLOBAL PROPERTY CMAKE_COLOR_DIAGNOSTICS ON)
@@ -87,7 +89,7 @@ if (WIN32)
       WIN32_LEAN_AND_MEAN
       C_WSPP_BUILD
   )
-  
+
   target_link_libraries(c-wspp
     PRIVATE
       ws2_32
