@@ -26,6 +26,7 @@ get_platform () {
         fi
         DLL_EXT=".dll"
         EXE_EXT=".exe"
+        EXTRA_ARGS="-D _WEBSOCKETPP_CPP11_THREAD_"
         EXTRA_LIBS="-Wl,-Bdynamic -lcrypt32 -lws2_32"
         if [ "$IS_CLANG" -ne 0 ]; then
             EXTRA_LIBS="-lc++ $EXTRA_LIBS"
@@ -65,20 +66,22 @@ if needs_build $DEST; then
     echo "Building lib for $PLATFORM ($DUMPMACHINE)"
     set -x
     g++ -o "$DEST" \
+        $EXTRA_ARGS \
         -shared -fpic $OPTIMZE \
         -Wno-deprecated-declarations \
         src/c-wspp.cpp \
-        -Iinclude -Isubprojects/websocketpp -Isubprojects/asio/include \
+        -Iinclude -Ilib/websocketpp -Ilib/asio/asio/include \
         -Wl,-Bstatic \
-        -lssl -lcrypto \
+        -lssl -lz -lcrypto \
         $EXTRA_LIBS \
         -Wno-deprecated 2>/dev/null || \
     g++ -o "$DEST" \
+        $EXTRA_ARGS \
         -shared -fpic $OPTIMIZE \
         -Wno-deprecated-declarations \
         src/c-wspp.cpp \
-        -Iinclude -Isubprojects/websocketpp -Isubprojects/asio/include \
-        -lssl -lcrypto \
+        -Iinclude -Ilib/websocketpp -Ilib/asio/asio/include \
+        -lssl -lz -lcrypto \
         $EXTRA_LIBS \
         -Wno-deprecated
     set +x
@@ -94,10 +97,11 @@ if needs_build $DEST; then
     echo "Building test for $PLATFORM"
     set -x
     g++ -o "$DEST" \
+        $EXTRA_ARGS \
         -Wno-deprecated-declarations $OPTIMZE \
-        src/test.c src/c-wspp.cpp \
-        -Iinclude -Isubprojects/websocketpp -Isubprojects/asio/include \
-        -lssl -lcrypto \
+        test/test.c src/c-wspp.cpp \
+        -Iinclude -Ilib/websocketpp -Ilib/asio/asio/include \
+        -lssl -lz -lcrypto \
         $EXTRA_LIBS \
         -Wno-deprecated
     set +x
@@ -115,11 +119,12 @@ if [ -x "$(which x86_64-w64-mingw32-g++)" ]; then
         echo "Building lib for $PLATFORM"
         set -x
         x86_64-w64-mingw32-g++ -o "$DEST" \
+            $EXTRA_ARGS \
             -shared -fpic $OPTIMZE \
             -Wno-deprecated-declarations \
             src/c-wspp.cpp \
-            -Iinclude -Isubprojects/websocketpp -Isubprojects/asio/include \
-            -lssl -lcrypto -lcrypt32 -lws2_32 \
+            -Iinclude -Ilib/websocketpp -Ilib/asio/asio/include \
+            -lssl -lz -lcrypto -lcrypt32 -lws2_32 \
             -Wl,-Bstatic \
             -Wno-deprecated
         set +x
@@ -138,11 +143,12 @@ if [ -x "$(which i686-w64-mingw32-g++)" ]; then
         echo "Building lib for $PLATFORM"
         set -x
         i686-w64-mingw32-g++ -o "$DEST" \
+            $EXTRA_ARGS \
             -shared -fpic $OPTIMZE \
             -Wno-deprecated-declarations \
             src/c-wspp.cpp \
-            -Iinclude -Isubprojects/websocketpp -Isubprojects/asio/include \
-            -lssl -lcrypto -lcrypt32 -lws2_32 \
+            -Iinclude -Ilib/websocketpp -Ilib/asio/asio/include \
+            -lssl -lz -lcrypto -lcrypt32 -lws2_32 \
             -Wl,-Bstatic \
             -Wno-deprecated
         set +x
