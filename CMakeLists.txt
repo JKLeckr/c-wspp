@@ -7,6 +7,8 @@ set_property(GLOBAL PROPERTY CMAKE_POLICY_VERSION_MINIMUM 3.22)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(CMAKE_CXX_STANDARD 23)
+
 set_property(GLOBAL PROPERTY CMAKE_SKIP_INSTALL_RULES ON)
 set_property(GLOBAL PROPERTY BUILD_RPATH_USE_ORIGIN ON)
 set_property(GLOBAL PROPERTY CMAKE_COLOR_DIAGNOSTICS ON)
@@ -17,9 +19,8 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   add_compile_options(-fcolor-diagnostics)
 endif()
 
-if(APPLE)
-  set(OPENSSL_USE_STATIC_LIBS TRUE)
-endif()
+set(OPENSSL_USE_STATIC_LIBS TRUE)
+set(ZLIB_USE_STATIC_LIBS TRUE)
 
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
@@ -37,6 +38,7 @@ target_link_libraries(asio
   INTERFACE
     Threads::Threads
     OpenSSL::SSL
+    OpenSSL::Crypto
 )
 
 add_library(websocketpp INTERFACE)
@@ -49,6 +51,7 @@ target_link_libraries(websocketpp
   INTERFACE
     Threads::Threads
     OpenSSL::SSL
+    OpenSSL::Crypto
     ZLIB::ZLIB
 )
 
@@ -78,6 +81,7 @@ target_link_libraries(c-wspp
   PRIVATE
     Threads::Threads
     OpenSSL::SSL
+    OpenSSL::Crypto
     ZLIB::ZLIB
     asio
     websocketpp
