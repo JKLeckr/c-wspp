@@ -7,5 +7,8 @@ proj_name := 'c-wspp'
 default:
     @just --list
 
-setup:
-    conan install . --profile:all profiles/clang-windows-static --output-folder=build --build=missing
+win64-setup:
+    conan install . --profile:all profiles/msvc-windows-static --output-folder=build --build=missing
+
+win32-setup:
+    conan install . --profile:all profiles/msvc-windows-x86-static --output-folder=build --build=missing

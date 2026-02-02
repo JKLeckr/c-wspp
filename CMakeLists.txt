@@ -7,7 +7,7 @@ set_property(GLOBAL PROPERTY CMAKE_POLICY_VERSION_MINIMUM 3.22)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 17)
 
 set_property(GLOBAL PROPERTY CMAKE_SKIP_INSTALL_RULES ON)
 set_property(GLOBAL PROPERTY BUILD_RPATH_USE_ORIGIN ON)
@@ -50,9 +50,9 @@ target_compile_definitions(websocketpp
 target_link_libraries(websocketpp
   INTERFACE
     Threads::Threads
+    ZLIB::ZLIB
     OpenSSL::SSL
     OpenSSL::Crypto
-    ZLIB::ZLIB
 )
 
 add_library(c-wspp SHARED src/c-wspp.cpp)
@@ -80,9 +80,9 @@ target_sources(c-wspp
 target_link_libraries(c-wspp
   PRIVATE
     Threads::Threads
+    ZLIB::ZLIB
     OpenSSL::SSL
     OpenSSL::Crypto
-    ZLIB::ZLIB
     asio
     websocketpp
 )
