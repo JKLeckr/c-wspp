@@ -7,6 +7,9 @@ set_property(GLOBAL PROPERTY CMAKE_POLICY_VERSION_MINIMUM 3.22)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set_property(GLOBAL PROPERTY CMAKE_SKIP_INSTALL_RULES ON)
 set_property(GLOBAL PROPERTY BUILD_RPATH_USE_ORIGIN ON)
 set_property(GLOBAL PROPERTY CMAKE_COLOR_DIAGNOSTICS ON)
@@ -22,8 +25,8 @@ if(APPLE)
 endif()
 
 find_package(Threads REQUIRED)
-find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 add_library(asio INTERFACE)
 target_include_directories(asio
@@ -37,19 +40,23 @@ target_link_libraries(asio
   INTERFACE
     Threads::Threads
     OpenSSL::SSL
+    OpenSSL::Crypto
 )
 
 add_library(websocketpp INTERFACE)
 target_include_directories(websocketpp INTERFACE lib/websocketpp)
 target_compile_definitions(websocketpp
   INTERFACE
+    _WEBSOCKETPP_CPP11_STL_
     _WEBSOCKETPP_CPP11_THREAD_
+    _SILENCE_CXX23_ALIGNED_STORAGE_DEPRECATION_WARNING
 )
 target_link_libraries(websocketpp
   INTERFACE
     Threads::Threads
-    OpenSSL::SSL
     ZLIB::ZLIB
+    OpenSSL::SSL
+    OpenSSL::Crypto
 )
 
 add_library(c-wspp SHARED src/c-wspp.cpp)
@@ -77,8 +84,9 @@ target_sources(c-wspp
 target_link_libraries(c-wspp
   PRIVATE
     Threads::Threads
-    OpenSSL::SSL
     ZLIB::ZLIB
+    OpenSSL::SSL
+    OpenSSL::Crypto
     asio
     websocketpp
 )
@@ -88,6 +96,7 @@ if (WIN32)
     PRIVATE
       WIN32_LEAN_AND_MEAN
       C_WSPP_BUILD
+      _WIN32_WINNT=0x0A00
   )
 
   target_link_libraries(c-wspp
