@@ -5,6 +5,10 @@
 
 # Code Workspace
 *.code-workspace
+/.vscode/
+
+# Zed
+/.zed/
 
 # Windows Shortcuts
 *.lnk
