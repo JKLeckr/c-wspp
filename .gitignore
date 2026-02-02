@@ -12,6 +12,8 @@
 # Vim files
 *.swp
 
+CMakeUserPresets.json
+
 # OS General Files
 .DS_Store
 .AppleDouble
